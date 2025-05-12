@@ -1,28 +1,32 @@
 root := justfile_directory()
+package-fork := x'$TYPST_PKG_FORK'
 
 export TYPST_ROOT := root
 
 [private]
 default:
-  @just --list --unsorted
+    @just --list --unsorted
+
+# generate assets
+assets:
+    typst compile docs/thumbnail.typ thumbnail-light.svg
+    typst compile --input theme=dark docs/thumbnail.typ thumbnail-dark.svg
 
 # generate manual
-doc:
-  typst compile docs/manual.typ docs/manual.pdf
-  typst compile docs/thumbnail.typ thumbnail-light.svg
-  typst compile --input theme=dark docs/thumbnail.typ thumbnail-dark.svg
+doc: assets
+    typst compile docs/manual.typ docs/manual.pdf
 
 # run test suite
 test *args:
-  tt run {{ args }}
+    tt run {{ args }}
 
 # update test cases
 update *args:
-  tt update {{ args }}
+    tt update {{ args }}
 
 # package the library into the specified destination folder
 package target:
-  ./scripts/package "{{target}}"
+    ./scripts/package "{{ target }}"
 
 # install the library with the "@local" prefix
 install: (package "@local")
@@ -32,13 +36,27 @@ install-preview: (package "@preview")
 
 # create a symbolic link to this library in the target repository
 link target="@local":
-  ./scripts/link "{{target}}"
+    ./scripts/link "{{ target }}"
 
 link-preview: (link "@preview")
 
+# bump version number
+bump VERSION:
+  tbump {{VERSION}}
+
+[private]
+[working-directory(x'$TYPST_PKG_FORK')]
+prepare-fork:
+    git checkout main
+    git pull typst main
+    git push origin --force
+
+# prepare: (package package-fork)
+prepare: prepare-fork (package package-fork)
+
 [private]
 remove target:
-  ./scripts/uninstall "{{target}}"
+    ./scripts/uninstall "{{ target }}"
 
 # uninstalls the library from the "@local" prefix
 uninstall: (remove "@local")
