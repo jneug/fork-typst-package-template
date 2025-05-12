@@ -1,5 +1,4 @@
-# The `my-package` Package
-<div align="center">Version 0.1.0</div>
+# my-package (v0.1.0)
 
 A short description about the project and/or client.
 
